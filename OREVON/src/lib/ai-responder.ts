@@ -50,9 +50,19 @@ function matchesAny(text: string, keywords: string[]): boolean {
   return keywords.some((keyword) => text.includes(keyword));
 }
 
+/** Splits into word tokens so "brushing"/"whitening" never collide with the substring "hi". */
+function tokenize(text: string): string[] {
+  return text.match(/[a-z']+/g) ?? [];
+}
+
+function isGreeting(text: string): boolean {
+  if (text.length >= 20) return false;
+  const tokens = tokenize(text);
+  return tokens.some((token) => GREETING_KEYWORDS.includes(token));
+}
+
 export type AiReply = {
   text: string;
-  relatedLearnId?: string;
 };
 
 export function generateAiReply(message: string): AiReply {
@@ -72,7 +82,7 @@ export function generateAiReply(message: string): AiReply {
     };
   }
 
-  if (matchesAny(text, GREETING_KEYWORDS) && text.length < 20) {
+  if (isGreeting(text)) {
     return { text: SEED_MESSAGE };
   }
 
@@ -86,7 +96,6 @@ export function generateAiReply(message: string): AiReply {
   if (article) {
     return {
       text: `${article.body} You can find more on this in the Learn tab, under "${article.title}".`,
-      relatedLearnId: article.id,
     };
   }
 
