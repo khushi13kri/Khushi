@@ -16,6 +16,12 @@ export type AssessmentQuestion = {
 
 export type AssessmentAnswers = Record<string, string | string[]>;
 
+/** Looks up a human-readable label for a given question/option id pair. */
+export function optionLabel(questionId: string, optionId: string): string | undefined {
+  const question = ASSESSMENT_QUESTIONS.find((q) => q.id === questionId);
+  return question?.options.find((option) => option.id === optionId)?.label;
+}
+
 export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 'ageGroup',

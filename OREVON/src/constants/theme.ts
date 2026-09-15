@@ -14,6 +14,7 @@ export const Brand = {
   name: 'OREVON',
   positioning: 'Intelligent Oral Care',
   tagline: 'Your intelligent oral-care companion.',
+  version: '1.0.0',
 } as const;
 
 export const Colors = {

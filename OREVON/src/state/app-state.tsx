@@ -3,6 +3,16 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import type { AssessmentAnswers } from '@/lib/assessment';
 import type { RoutineKey, RoutineLogs } from '@/lib/routine';
 
+export type NotificationPrefs = {
+  dailyReminders: boolean;
+  weeklyCheckins: boolean;
+};
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  dailyReminders: true,
+  weeklyCheckins: true,
+};
+
 /**
  * App-wide state, held in memory for V1 (no backend yet). Everything
  * here resets when the app reloads; Supabase-backed persistence is a
@@ -13,6 +23,8 @@ type AppState = {
   setAssessment: (answers: AssessmentAnswers) => void;
   routineLogs: RoutineLogs;
   toggleRoutineItem: (dateKey: string, key: RoutineKey) => void;
+  notificationPrefs: NotificationPrefs;
+  toggleNotificationPref: (key: keyof NotificationPrefs) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -20,6 +32,7 @@ const AppStateContext = createContext<AppState | null>(null);
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [assessment, setAssessment] = useState<AssessmentAnswers | null>(null);
   const [routineLogs, setRoutineLogs] = useState<RoutineLogs>({});
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
 
   function toggleRoutineItem(dateKey: string, key: RoutineKey) {
     setRoutineLogs((prev) => {
@@ -28,9 +41,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function toggleNotificationPref(key: keyof NotificationPrefs) {
+    setNotificationPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
   const value = useMemo<AppState>(
-    () => ({ assessment, setAssessment, routineLogs, toggleRoutineItem }),
-    [assessment, routineLogs]
+    () => ({
+      assessment,
+      setAssessment,
+      routineLogs,
+      toggleRoutineItem,
+      notificationPrefs,
+      toggleNotificationPref,
+    }),
+    [assessment, routineLogs, notificationPrefs]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
