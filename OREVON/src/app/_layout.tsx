@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { OrevonSplashOverlay } from '@/components/splash-overlay';
+import { AppStateProvider } from '@/state/app-state';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -11,8 +12,10 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <OrevonSplashOverlay />
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+      <AppStateProvider>
+        <OrevonSplashOverlay />
+        <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+      </AppStateProvider>
     </ThemeProvider>
   );
 }
