@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
+import { SEED_MESSAGE } from '@/lib/ai-responder';
 import type { AssessmentAnswers } from '@/lib/assessment';
 import type { RoutineKey, RoutineLogs } from '@/lib/routine';
 
@@ -13,6 +14,16 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   weeklyCheckins: true,
 };
 
+export type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+};
+
+function generateMessageId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 /**
  * App-wide state, held in memory for V1 (no backend yet). Everything
  * here resets when the app reloads; Supabase-backed persistence is a
@@ -25,6 +36,8 @@ type AppState = {
   toggleRoutineItem: (dateKey: string, key: RoutineKey) => void;
   notificationPrefs: NotificationPrefs;
   toggleNotificationPref: (key: keyof NotificationPrefs) => void;
+  chatMessages: ChatMessage[];
+  addChatMessage: (role: ChatMessage['role'], text: string) => void;
 };
 
 const AppStateContext = createContext<AppState | null>(null);
@@ -33,6 +46,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [assessment, setAssessment] = useState<AssessmentAnswers | null>(null);
   const [routineLogs, setRoutineLogs] = useState<RoutineLogs>({});
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>(DEFAULT_NOTIFICATION_PREFS);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    { id: 'seed', role: 'assistant', text: SEED_MESSAGE },
+  ]);
 
   function toggleRoutineItem(dateKey: string, key: RoutineKey) {
     setRoutineLogs((prev) => {
@@ -45,6 +61,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setNotificationPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  function addChatMessage(role: ChatMessage['role'], text: string) {
+    setChatMessages((prev) => [...prev, { id: generateMessageId(), role, text }]);
+  }
+
   const value = useMemo<AppState>(
     () => ({
       assessment,
@@ -53,8 +73,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       toggleRoutineItem,
       notificationPrefs,
       toggleNotificationPref,
+      chatMessages,
+      addChatMessage,
     }),
-    [assessment, routineLogs, notificationPrefs]
+    [assessment, routineLogs, notificationPrefs, chatMessages]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
