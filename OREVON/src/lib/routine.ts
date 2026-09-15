@@ -19,3 +19,18 @@ export const ROUTINE_ITEMS: { key: RoutineKey; label: string }[] = [
 export function routineLabel(key: RoutineKey): string {
   return ROUTINE_ITEMS.find((item) => item.key === key)?.label ?? key;
 }
+
+/** One day's log: which routine keys were completed that day. */
+export type RoutineLog = Partial<Record<RoutineKey, boolean>>;
+
+/** All logs, keyed by date (YYYY-MM-DD). */
+export type RoutineLogs = Record<string, RoutineLog>;
+
+/** How many of the given days had every one of `targetKeys` completed. */
+export function weeklyCompletionCount(logs: RoutineLogs, targetKeys: RoutineKey[], dateKeys: string[]): number {
+  return dateKeys.filter((day) => {
+    const log = logs[day];
+    if (!log) return false;
+    return targetKeys.every((key) => log[key] === true);
+  }).length;
+}

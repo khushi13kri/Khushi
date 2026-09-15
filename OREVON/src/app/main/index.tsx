@@ -1,98 +1,127 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Button } from '@/components/ui/button';
+import { ProgressBar } from '@/components/ui/progress-bar';
+import { RoutineItem } from '@/components/ui/routine-item';
+import { Screen } from '@/components/ui/screen';
+import { ScoreCard } from '@/components/ui/score-card';
+import { BottomTabInset, Spacing } from '@/constants/theme';
+import { lastNDateKeys, todayKey } from '@/lib/date';
+import { generatePlan } from '@/lib/plan-engine';
+import { routineLabel, weeklyCompletionCount } from '@/lib/routine';
+import { computeCareScore } from '@/lib/score-engine';
+import { useAppState } from '@/state/app-state';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
 }
 
 export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+  const { assessment, routineLogs, toggleRoutineItem } = useAppState();
+
+  if (!assessment) {
+    return (
+      <Screen
+        scroll
+        footer={<Button label="Start Assessment" onPress={() => router.push('/onboarding')} />}>
+        <View style={styles.emptyState}>
+          <ThemedText type="h2">Let&apos;s get to know you</ThemedText>
+          <ThemedText type="default" themeColor="textSecondary">
+            Complete a quick assessment so OREVON can build your personal plan.
           </ThemedText>
-        </ThemedView>
+        </View>
+      </Screen>
+    );
+  }
 
-        <ThemedText type="code" style={styles.code}>
-          get started
+  const score = computeCareScore(assessment);
+  const plan = generatePlan(assessment, score);
+  const today = todayKey();
+  const todayLog = routineLogs[today] ?? {};
+  const weekDays = lastNDateKeys(7);
+  const weeklyDone = weeklyCompletionCount(routineLogs, plan.weeklyGoal.targetKeys, weekDays);
+
+  return (
+    <Screen scroll>
+      <ThemedText type="h2" style={styles.greeting}>
+        {greeting()}
+      </ThemedText>
+
+      <ScoreCard score={score} />
+
+      <View style={styles.focusBanner}>
+        <ThemedText type="label" themeColor="textSecondary">
+          Your current focus
         </ThemedText>
+        <ThemedText type="h2" themeColor="primary">
+          {plan.focusStatement}
+        </ThemedText>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <View style={styles.section}>
+        <ThemedText type="label" themeColor="textSecondary">
+          Today
+        </ThemedText>
+        <View style={styles.actionList}>
+          {plan.dailyActionKeys.map((key) => (
+            <RoutineItem
+              key={key}
+              label={routineLabel(key)}
+              checked={todayLog[key] === true}
+              onToggle={() => toggleRoutineItem(today, key)}
+            />
+          ))}
+        </View>
+      </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <View style={styles.section}>
+        <ThemedText type="small">{plan.weeklyGoal.label}</ThemedText>
+        <ProgressBar current={weeklyDone} total={plan.weeklyGoal.targetDays} />
+        <ThemedText type="small" themeColor="textTertiary">
+          Your trend will appear here as you build history.
+        </ThemedText>
+      </View>
+
+      <View style={styles.quickAccessRow}>
+        <Button variant="secondary" label="OREVON AI" onPress={() => router.push('/main/ai')} />
+        <Button variant="secondary" label="Learn" onPress={() => router.push('/main/learn')} />
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
+    gap: Spacing.two,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  },
+  greeting: {
+    marginTop: Spacing.three,
+    marginBottom: Spacing.four,
+  },
+  focusBanner: {
+    gap: Spacing.half,
+    marginTop: Spacing.five,
+    marginBottom: Spacing.three,
+  },
+  section: {
+    gap: Spacing.three,
+    marginBottom: Spacing.five,
+  },
+  actionList: {
+    gap: Spacing.two,
+  },
+  quickAccessRow: {
+    flexDirection: 'row',
+    gap: Spacing.three,
+    marginBottom: BottomTabInset + Spacing.three,
   },
 });
