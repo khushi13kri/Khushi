@@ -2,7 +2,7 @@
 
 **Intelligent Oral Care** — a personalized oral-care companion built with Expo, React Native, and TypeScript.
 
-This is the V1 mobile app: Assessment → Care Score → Personal Plan → Home, Routine, Learn, and Profile. See `AGENTS.md` for the Expo SDK version note.
+This is the V1 mobile app: Assessment → Care Score → Personal Plan → Home, Routine, Learn, Profile, and a rule-based OREVON AI. See `AGENTS.md` for the Expo SDK version note.
 
 ## Run it locally
 
@@ -44,8 +44,24 @@ This routes the connection through the internet instead of your local network, s
 
 ## Current limitations (V1)
 
-- **No backend yet** — all data (your assessment answers, routine logs, preferences) lives in memory and resets when the app reloads. Supabase-backed persistence is planned for a later version.
-- **OREVON AI** is a placeholder screen for now — the conversational feature comes after the core screens are stable.
+- **No backend yet** — all data (your assessment answers, routine logs, preferences, chat history) lives in memory and resets when the app reloads. Supabase-backed persistence is planned for a later version.
+- **OREVON AI is rule-based, not a live LLM** — it matches your message against Learn content and always defers to a dentist for anything urgent or diagnosis-shaped. See the roadmap below for the planned LLM upgrade.
+
+## Roadmap
+
+**V1 (current):**
+Assessment → Care Score → Personal Plan → Routine → Learn → rule-based OREVON AI
+
+**V2:**
+Persistent user data + routine history → real LLM → personalized OREVON AI using appropriate user context, with privacy/consent considerations.
+
+**V3:**
+Product Intelligence → personalized product recommendations → OREVON Shop.
+
+**V4:**
+OREVON-owned oral-care products and broader oral-care ecosystem.
+
+Nothing beyond V1 is implemented yet — no Product Intelligence, product catalog, shopping, payments, Supabase, or live LLM integration.
 
 ## Project structure
 
