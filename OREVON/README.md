@@ -1,8 +1,10 @@
-# Welcome to your Expo app 👋
+# OREVON
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Intelligent Oral Care** — a personalized oral-care companion built with Expo, React Native, and TypeScript.
 
-## Get started
+This is the V1 mobile app: Assessment → Care Score → Personal Plan → Home, Routine, Learn, Profile, and a rule-based OREVON AI. See `AGENTS.md` for the Expo SDK version note.
+
+## Run it locally
 
 1. Install dependencies
 
@@ -16,41 +18,59 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. In the terminal output, choose how to open it:
+   - **Web** — press `w`
+   - **iOS simulator** — press `i` (macOS only)
+   - **Android emulator** — press `a`
+   - **Your phone** — see below
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Try it on your phone
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+1. Install **Expo Go** from the App Store (iOS) or Google Play (Android).
+2. Run `npx expo start` on your computer.
+3. Scan the QR code shown in the terminal:
+   - **iOS**: open the Camera app and point it at the code.
+   - **Android**: open Expo Go and use its built-in scanner.
 
-## Get a fresh project
+Your phone and computer need to be on the **same Wi-Fi network** for this to work.
 
-When you're ready, run:
+If they're not on the same network (e.g. you're testing over cellular, or on a restricted network), start the server with a tunnel instead:
 
 ```bash
-npm run reset-project
+npx expo start --tunnel
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This routes the connection through the internet instead of your local network, so a shared Wi-Fi connection isn't required. It's slower to connect but works from anywhere.
 
-### Other setup steps
+## Current limitations (V1)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- **No backend yet** — all data (your assessment answers, routine logs, preferences, chat history) lives in memory and resets when the app reloads. Supabase-backed persistence is planned for a later version.
+- **OREVON AI is rule-based, not a live LLM** — it matches your message against Learn content and always defers to a dentist for anything urgent or diagnosis-shaped. See the roadmap below for the planned LLM upgrade.
 
-## Learn more
+## Roadmap
 
-To learn more about developing your project with Expo, look at the following resources:
+**V1 (current):**
+Assessment → Care Score → Personal Plan → Routine → Learn → rule-based OREVON AI
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**V2:**
+Persistent user data + routine history → real LLM → personalized OREVON AI using appropriate user context, with privacy/consent considerations.
 
-## Join the community
+**V3:**
+Product Intelligence → personalized product recommendations → OREVON Shop.
 
-Join our community of developers creating universal apps.
+**V4:**
+OREVON-owned oral-care products and broader oral-care ecosystem.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Nothing beyond V1 is implemented yet — no Product Intelligence, product catalog, shopping, payments, Supabase, or live LLM integration.
+
+## Project structure
+
+```
+src/
+  app/            expo-router screens (file-based routing)
+    main/         the 5-tab app: Home, Routine, AI, Learn, Profile
+  components/      shared UI (design system components live in components/ui)
+  constants/       design system tokens (colors, spacing, typography)
+  lib/             Score Engine, Plan Engine, Assessment questions, Learn content
+  state/           in-memory app state (Context)
+```
